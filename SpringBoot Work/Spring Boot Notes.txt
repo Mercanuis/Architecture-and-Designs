@@ -1,0 +1,538 @@
+************************************
+        SPRING BOOT NOTES
+************************************
+
+------------------------------------
+| CURRENT ISSUE(s)
+------------------------------------
+==============
+----- Problem:
+==============
+
+
+===============
+----- Solution:
+===============
+
+
+
+------------------------------------
+| PREVIOUS ISSUE(s)
+------------------------------------
+==============
+----- Problem:
+==============
+X-frame-options set to DENY
+
+
+===============
+----- Solution:
+===============
+Fixed spring security headers to allow for SAMEORIGIN
+http.headers().addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsMode.SAMEORIGIN));
+
+
+
+==============
+----- Problem:
+==============
+SEVERE: Failed to start component [Connector[HTTP/1.1-8888]]
+org.apache.catalina.LifecycleException: Protocol handler start failed
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:1008)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:183)
+	...
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:744)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:391)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:312)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1215)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1204)
+	at com.rhdjapan.magi.MagiApplication.main(MagiApplication.java:25)
+	...
+Caused by: java.lang.IllegalArgumentException: jsse.alias_no_key_entry
+Caused by: java.io.IOException: jsse.alias_no_key_entry
+	at org.apache.tomcat.util.net.SSLUtilBase.getKeyManagers(SSLUtilBase.java:328)
+	at org.apache.tomcat.util.net.SSLUtilBase.createSSLContext(SSLUtilBase.java:247)
+	at org.apache.tomcat.util.net.AbstractJsseEndpoint.createSSLContext(AbstractJsseEndpoint.java:97)
+	... 26 more
+
+
+===============
+----- Solution:
+===============
+Use these steps for keygen
+
+
+keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype JKS -keystore tomcat.jks validity 3650
+keytool -export -keystore tomcat.jks -alias tomcat -file tomcat.crt
+(Possible) sudo keytool -delete -alias tomcat -keystore $JDK_HOME/lib/security/cacerts
+sudo keytool -importcert -file tomcat.crt -alias tomcat -keystore $JDK_HOME/lib/security/cacerts
+keytool -import -alias tomcat -file tomcat.crt -keystore tomcat.ts
+
+TODO: LEAVE THE BLOODY KEYS OUT OF SVN
+
+
+
+==============
+----- Problem:
+==============
+SEVERE: Failed to start component [Connector[HTTP/1.1-8888]]
+org.apache.catalina.LifecycleException: Protocol handler start failed
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:744)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:391)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:312)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1215)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1204)
+	at com.rhdjapan.magi.MagiApplication.main(MagiApplication.java:25)
+Caused by: java.lang.IllegalArgumentException: Invalid keystore format
+Caused by: java.io.IOException: Invalid keystore format
+	at sun.security.provider.JavaKeyStore.engineLoad(JavaKeyStore.java:663)
+	at sun.security.provider.JavaKeyStore$JKS.engineLoad(JavaKeyStore.java:56)
+	at sun.security.provider.KeyStoreDelegator.engineLoad(KeyStoreDelegator.java:224)
+	at sun.security.provider.JavaKeyStore$DualFormatJKS.engineLoad(JavaKeyStore.java:70)
+	at java.security.KeyStore.load(KeyStore.java:1445)
+
+
+===============
+----- Solution:
+===============
+Re-made the key. Keep it out of SVN for the time being
+
+
+
+==============
+----- Problem:
+==============
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/magi] threw exception [javax.servlet.jsp.JspException: org.apache.jasper.el.JspPropertyNotFoundException: /jsp/order/sellerOrder/details/component/sellerOrderSubItem.jsp(23,4) '${sellerOrderItem.subitem.id}' Property [subitem] not found on type [com.rhdjapan.magi.model.entities.sellerorder.SellerOrderItem]] with root cause
+org.apache.jasper.el.JspPropertyNotFoundException: /jsp/order/sellerOrder/details/component/sellerOrderSubItem.jsp(23,4) '${sellerOrderItem.subitem.id}' Property [subitem] not found on type [com.rhdjapan.magi.model.entities.sellerorder.SellerOrderItem]
+
+SEVERE: Servlet.service() for servlet [jsp] threw exception
+org.apache.jasper.JasperException: /jsp/order/sellerOrder/details/component/sellerOrderItem.jsp (line: [132], column: [19]) According to TLD or attribute directive in tag file, attribute [value] does not accept any expressions
+
+
+===============
+----- Solution:
+===============
+
+Need to use the right JSP files for fmt and core
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+
+
+==============
+----- Problem:
+==============
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/magi] threw exception [javax.servlet.jsp.JspException: org.apache.jasper.JasperException: /jsp/order/sellerOrder/details/component/sellerOrderSubItem.jsp (line: [137], column: [62]) According to TLD or attribute directive in tag file, attribute [value] does not accept any expressions] with root cause
+org.apache.jasper.JasperException: /jsp/order/sellerOrder/details/component/sellerOrderSubItem.jsp (line: [137], column: [62]) According to TLD or attribute directive in tag file, attribute [value] does not accept any expressions
+
+
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/magi] threw exception [javax.servlet.jsp.JspException: javax.el.ELException: Failed to parse the expression [${sellerOrderItem.subItem.class.simpleName}]] with root cause
+javax.el.ELException: The identifier [class] is not a valid Java identifier as required by section 1.19 of the EL specification (Identifier ::= Java language identifier). This check can be disabled by setting the system property org.apache.el.parser.SKIP_IDENTIFIER_CHECK to true.
+
+
+===============
+----- Solution:
+===============
+        <input type="hidden" name="subItemType-${subItemId}" value="{sellerOrderItem.subItem['class'].simpleName}"/>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+
+
+==============
+----- Problem:
+==============
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/magi] threw exception [org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.part.PartsCollection.parts, could not initialize proxy - no Session] with root cause
+org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.part.PartsCollection.parts, could not initialize proxy - no Session
+	at org.hibernate.collection.internal.AbstractPersistentCollection.throwLazyInitializationException(AbstractPersistentCollection.java:602)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.withTemporarySessionIfNeeded(AbstractPersistentCollection.java:217)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.readSize(AbstractPersistentCollection.java:161)
+	at org.hibernate.collection.internal.PersistentBag.isEmpty(PersistentBag.java:355)
+	at org.apache.jsp.productDetails_jsp._jspService(productDetails_jsp.java:1041)
+
+
+===============
+----- Solution:
+===============
+More List -> Set Transformation, set FetchType.EAGER to PartsCollection.parts
+
+
+
+==============
+----- Problem:
+==============
+An error occurred at line: [75] in the jsp file: [/customerOrderDetails.jsp]
+username cannot be resolved to a variable
+72:     response.setHeader("Cache-Control", "no-cache"); //HTTP 1.1
+73:     response.setHeader("Pragma", "no-cache"); //HTTP 1.0
+74:     response.setDateHeader("Expires", 0); //prevents caching at the proxy server
+75:     User user = userServiceImpl.getUser(username);
+76: 
+77:     // Retrieving customer order
+78:     CustomerOrder co = null;
+
+
+===============
+----- Solution:
+===============
+Disabled call to username. TODO: HOW is this being called? How does this field get filled in?
+
+
+
+==============
+----- Problem:
+==============
+
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+ com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+ com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getEnvironmentProperties(EnvPropertiesUtil.java:43)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getParameterValue(EnvPropertiesUtil.java:23)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getFlagParameterValue(EnvPropertiesUtil.java:37)
+	at com.rhdjapan.magi.common.utils.RHDConfig.getFlagValue(RHDConfig.java:124)
+	at com.rhdjapan.magi.common.utils.RHDConfig.isProductAdditionalFeesActivated(RHDConfig.java:104)
+ com.rhdjapan.magi.services.utilities.helpers.CustomerOrderHelper.getTotalAdditionalShippingFees(CustomerOrderHelper.java:53)
+...
+at org.apache.jsp.sellerOrderDetails_jsp._jspService(sellerOrderDetails_jsp.java:154)
+
+
+===============
+----- Solution:
+===============
+TODO: Disabled this check for now, need to figure out a strategy for other classes to see MagiProperties
+
+
+
+==============
+----- Problem:
+==============
+Confilict with Part and Product.partcollections both needing to be eagerlly fetched
+
+
+===============
+----- Solution:
+===============
+Set partsCollections to Set rather than List (we don't care about order)
+Set FetchType to EAGER for both fields in Product and Part
+
+
+
+==============
+----- Problem:
+==============
+Exception: org.apache.jasper.JasperException: Unable to compile class for JSP: An error occurred at line: [48] in the jsp file: [/partDetails.jsp] username cannot be resolved to a variable 45: 46: <%@include file="beforeHtml.jsp" %> 47: 48: <%User user = userServiceImpl.getUser(username); 49: 50: String orderIDListStr = ""; 51: WheelSeries ws = null; An error occurred at line: [85] in the jsp file: [/partDetails.jsp] RHDConfig cannot be resolved 82: Boolean si_isDiscontinued = false; 83: Boolean si_isBackordered = false; 84: Boolean si_isNoStockDiscontinued = false; 85: Boolean showOEMAssemblies = RHDConfig.showOEMAssemblies(); 86: String si_discontinuationDate = ""; 87: String si_backorderedDate = ""; 88: String si_availabilityDate = ""; An error occurred at line: [977] in the jsp file: [/partDetails.jsp] RHDConfig cannot be resolved 974: 975: <%}%> 976: 977: <%if (RHDConfig.isInvalidShippingMethodActivated() && part instanceof OEM) {%> 978:
+
+
+===============
+----- Solution:
+===============
+REPEAT: this seems to be resolved by replacing
+<%--<%@include file="top.jsp"%>--%>
+
+with 
+
+<jsp:include page="top.jsp"/>
+
+to remove any duplicates
+
+
+
+==============
+----- Problem:
+==============
+
+SEVERE: Servlet.service() for servlet [dispatcherServlet] in context with path [/magi] threw exception [Request processing failed; nested exception is java.lang.RuntimeException: java.lang.ClassNotFoundException: org.glassfish.jersey.internal.RuntimeDelegateImpl] with root cause
+java.lang.ClassNotFoundException: org.glassfish.jersey.internal.RuntimeDelegateImpl
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:382)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:264)
+	at javax.ws.rs.ext.FactoryFinder.newInstance(FactoryFinder.java:114)
+	at javax.ws.rs.ext.FactoryFinder.find(FactoryFinder.java:207)
+	at javax.ws.rs.ext.RuntimeDelegate.findDelegate(RuntimeDelegate.java:135)
+	at javax.ws.rs.ext.RuntimeDelegate.getInstance(RuntimeDelegate.java:120)
+	at javax.ws.rs.core.UriBuilder.newInstance(UriBuilder.java:95)
+	at javax.ws.rs.core.UriBuilder.fromUri(UriBuilder.java:119)
+	at com.rhdjapan.magi.common.utils.common.UrlUtil.getUrl(UrlUtil.java:21)
+	at com.rhdjapan.magi.services.service.version.VersionServiceImpl.getByName(VersionServiceImpl.java:64)
+	at com.rhdjapan.magi.services.service.version.VersionServiceImpl.lambda$getLatestVersions$0(VersionServiceImpl.java:83)
+	at java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:193)
+	at java.util.stream.IntPipeline$4$1.accept(IntPipeline.java:250)
+	at java.util.stream.Streams$RangeIntSpliterator.forEachRemaining(Streams.java:110)
+	at java.util.Spliterator$OfInt.forEachRemaining(Spliterator.java:693)
+	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:482)
+	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:472)
+	at java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:708)
+	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:566)
+	at com.rhdjapan.magi.services.service.version.VersionServiceImpl.getLatestVersions(VersionServiceImpl.java:84)
+	at com.rhdjapan.magi.webapp.util.VersionController.getLatestVersions(VersionController.java:29)
+	at com.rhdjapan.magi.webapp.util.VersionController$$FastClassBySpringCGLIB$$81075aba.invoke(<generated>)
+
+
+===============
+----- Solution:
+===============
+Moved to httpclient dep for building URL and call JIRA. TODO: Move other calls to this system
+
+
+
+==============
+----- Problem:
+==============
+WARNING: Resolved [org.springframework.http.converter.HttpMessageNotWritableException: Could not write JSON: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.security.Role.authorities, could not initialize proxy - no Session; nested exception is org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.security.Role.authorities, could not initialize proxy - no Session]
+Oct 21, 2019 4:26:05 PM org.springframework.web.servlet.FrameworkServlet logResult
+FINE: Completed 500 INTERNAL_SERVER_ERROR
+
+
+===============
+----- Solution:
+===============
+Remove @LazyCollection(value = LazyCollectionOption.TRUE) off Role.authorities
+Made everywhere that called getAuthorities @Transactional
+
+
+
+==============
+----- Problem:
+==============
+ActiveMQ
+
+
+===============
+----- Solution:
+===============
+following https://www.thomasvitale.com/https-spring-boot-ssl-certificate/
+ - created broker.crt/jks, tomcat.crt/jks/ts to handle initilaization
+
+added the following to application.properties
+server.ssl.key-store=classpath:tomcat.jks
+server.ssl.key-store-type=JKS
+server.ssl.key-store-password=k02Ob6ekPsFvzDbIFH98
+server.ssl.key-alias=tomcat
+server.ssl.key-store-provider=SUN
+server.ssl.trust-store=classpath:tomcat.ts
+server.ssl.trust-store-type=JKS
+
+per Stephen, this might need to be addressed with regards to cacerts
+
+
+
+==============
+----- Problem:
+==============
+Quote -> ReserveOEM -> PrintSticker
+____________________________________
+
+org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named 'quoteService' available
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBeanDefinition(DefaultListableBeanFactory.java:771)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getMergedLocalBeanDefinition(AbstractBeanFactory.java:1221)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:294)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:199)
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1105)
+	at com.rhdjapan.magi.common.jndi.InitialContext.lookup(InitialContext.java:51)
+	at com.rhdjapan.magi.common.utils.RHDConfig.getBean(RHDConfig.java:649)
+	at com.rhdjapan.magi.services.utilities.helpers.stickers.StickerHelper.initBeans(StickerHelper.java:335)
+	at com.rhdjapan.magi.services.utilities.helpers.stickers.StickerHelper.<init>(StickerHelper.java:176)
+	at com.rhdjapan.magi.webapp.servlets.docgen.PdfPartsLabelsServlet.putStickerArray(PdfPartsLabelsServlet.java:309)
+	at com.rhdjapan.magi.webapp.servlets.docgen.PdfPartsLabelsServlet.processRequest(PdfPartsLabelsServlet.java:237)
+	at com.rhdjapan.magi.webapp.servlets.docgen.PdfPartsLabelsServlet.doGet(PdfPartsLabelsServlet.java:287)
+
+-------------------------------------------
+-------------------------------------------
+
+Order -> SOI -> Detail
+__________________________
+
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+	at com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getEnvironmentProperties(EnvPropertiesUtil.java:43)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getParameterValue(EnvPropertiesUtil.java:23)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getFlagParameterValue(EnvPropertiesUtil.java:37)
+	at com.rhdjapan.magi.common.utils.RHDConfig.getFlagValue(RHDConfig.java:124)
+	at com.rhdjapan.magi.common.utils.RHDConfig.isProd(RHDConfig.java:60)
+	at org.apache.jsp.sellerOrderItemDetails_jsp._jspService(sellerOrderItemDetails_jsp.java:317)
+
+-------------------------------------------------
+-------------------------------------------------
+
+Invoice -> Ready To Go Out -> Invoices Combi
+______________________________________________
+org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.Invoice.parcels, could not initialize proxy - no Session
+	at org.hibernate.collection.internal.AbstractPersistentCollection.throwLazyInitializationException(AbstractPersistentCollection.java:602)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.withTemporarySessionIfNeeded(AbstractPersistentCollection.java:217)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.initialize(AbstractPersistentCollection.java:581)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.read(AbstractPersistentCollection.java:148)
+	at org.hibernate.collection.internal.PersistentBag.iterator(PersistentBag.java:366)
+	at com.rhdjapan.magi.services.utilities.helpers.InvoiceHelper.getParcels(InvoiceHelper.java:77)
+	at com.rhdjapan.magi.webapp.servlets.docgen.PdfInvoicesCombiServlet.service(PdfInvoicesCombiServlet.java:131)
+	at com.rhdjapan.magi.webapp.servlets.docgen.PdfInvoicesCombiServlet$$FastClassBySpringCGLIB$$5a50eeed.invoke(<generated>)
+
+
+===============
+----- Solution:
+===============
+More @Transactional 
+Move fixes in RHDConfig to modify calls to static_data
+
+
+
+==============
+----- Problem:
+==============
+Exception: org.apache.jasper.JasperException: Unable to compile class for JSP: An error occurred at line: [12] in the jsp file: [/top.jsp] Duplicate local variable magiProperties 9: 10: 11: 12: <% MagiProperties magiProperties = (MagiProperties) CustomStaticApplicationContext.getBean("magiProperties"); %> 13: 14: 15: Stacktrace:
+
+
+===============
+----- Solution:
+===============
+CHECK: this seems to be resolved by replacing
+<%--<%@include file="top.jsp"%>--%>
+
+with 
+
+<jsp:include page="top.jsp"/>
+
+to remove any duplicates
+
+
+
+
+==============
+----- Problem:
+==============
+
+PRODUCTS
+org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.product.Product.partsCollections, could not initialize proxy - no Session
+
+PARTS
+SEVERE: Servlet.service() for servlet [dispatcherServlet] in context with path [/magi] threw exception [Request processing failed; nested exception is org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.part.Part.partsCollections, could not initialize proxy - no Session] with root cause
+org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.rhdjapan.magi.model.entities.part.Part.partsCollections, could not initialize proxy - no Session
+
+CLEARANCES
+SEVERE: Exception Processing ErrorPage[errorCode=0, location=/error]
+org.springframework.web.util.NestedServletException: Request processing failed; nested exception is java.lang.IllegalStateException: getWriter() has already been called for this response
+
+
+FIND AND EDIT
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+	at com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+
+
+org.springframework.transaction.UnexpectedRollbackException: Transaction silently rolled back because it has been marked as rollback-only
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.processCommit(AbstractPlatformTransactionManager.java:755)
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(AbstractPlatformTransactionManager.java:714)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning(TransactionAspectSupport.java:534)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:305)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:688)
+	at com.rhdjapan.magi.services.service.cars.CarServiceImpl$$EnhancerBySpringCGLIB$$77ae9f43.getCarsByMaker(<generated>)
+	at org.apache.jsp.groupProductsCompat_jsp._jspService(groupProductsCompat_jsp.java:178)
+
+----------
+
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+	at com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getEnvironmentProperties(EnvPropertiesUtil.java:43)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getParameterValue(EnvPropertiesUtil.java:23)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getFlagParameterValue(EnvPropertiesUtil.java:37)
+	at com.rhdjapan.magi.common.utils.RHDConfig.getFlagValue(RHDConfig.java:123)
+	at com.rhdjapan.magi.common.utils.RHDConfig.isInvalidShippingMethodActivated(RHDConfig.java:99)
+	at org.apache.jsp.groupProductsMateria_jsp._jspService(groupProductsMateria_jsp.java:139)
+
+------------
+
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+	at com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getEnvironmentProperties(EnvPropertiesUtil.java:43)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getParameterValue(EnvPropertiesUtil.java:23)
+	at com.rhdjapan.magi.common.utils.common.EnvPropertiesUtil.getFlagParameterValue(EnvPropertiesUtil.java:37)
+	at com.rhdjapan.magi.common.utils.RHDConfig.getFlagValue(RHDConfig.java:123)
+	at com.rhdjapan.magi.common.utils.RHDConfig.isInvalidShippingMethodActivated(RHDConfig.java:99)
+	at org.apache.jsp.groupProducts_jsp._jspService(groupProducts_jsp.java:515)
+
+
+
+BRANDS
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+	at com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+
+
+CARS
+java.lang.NullPointerException
+	at java.util.Properties$LineReader.readLine(Properties.java:434)
+	at java.util.Properties.load0(Properties.java:353)
+	at java.util.Properties.load(Properties.java:341)
+	at com.rhdjapan.magi.common.utils.common.GenericPropertiesUtil.loadProperties(GenericPropertiesUtil.java:16)
+
+
+org.springframework.transaction.UnexpectedRollbackException: Transaction silently rolled back because it has been marked as rollback-only
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.processCommit(AbstractPlatformTransactionManager.java:755)
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(AbstractPlatformTransactionManager.java:714)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning(TransactionAspectSupport.java:534)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:305)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:688)
+	at com.rhdjapan.magi.services.service.cars.CarServiceImpl$$EnhancerBySpringCGLIB$$77ae9f43.getCarsByMaker(<generated>)
+	at org.apache.jsp.carGrid_jsp._jspService(carGrid_jsp.java:142)
+
+
+===============
+----- Solution:
+===============
+PRODUCTS, PARTS, AUCTIONS, WHEELS
+Set Category.mageId to Integer over int
+Set shippingIn in TierPrices to Integer over int
+Set @Transactional over servlets to allow Hibernate to manage transaction.
+
+FIND AND EDIT, BRANDS
+Moved BidJDMUrl to MagiProperties
+
+FIND AND EDIT, CARS
+Fixed Query for callling Brands and removed call(s) to RHDDB
+Query q = em.createQuery("SELECT DISTINCT maker FROM Car");
+
+
+
+==============
+----- Problem:
+==============
+java.lang.IllegalStateException: Required identifier property not found for class com.rhdjapan.magi.model.entities.Reminder!
+
+
+===============
+----- Solution:
+===============
+Enabled the following in appliation.properties
+
+spring.data.jpa.repositories.bootstrap-mode=default
+spring.data.jpa.repositories.enabled=true
+spring.jpa.open-in-view=false
+spring.jpa.generate-ddl=true
+
+This fixes the issue and allows for the login page to render
+NOTE: there are several warnings with regards to entities in the system, where foreign keys are involved
+
+org.hibernate.tool.schema.spi.CommandAcceptanceException: Error executing DDL "alter table stockentry_sellerorderitem add constraint FKkt46otr1awj1di35i37sxkab4 foreign key (sellerOrderItems_ID) references SellerOrderItem (id)" via JDBC Statement
+Caused by: java.sql.SQLIntegrityConstraintViolationException: Cannot add or update a child row: a foreign key constraint fails (`dev_magi_entities`.`#sql-9f7_8f`, CONSTRAINT `FKkt46otr1awj1di35i37sxkab4` FOREIGN KEY (`sellerOrderItems_ID`) REFERENCES `sellerorderitem` (`ID`))
+
+
